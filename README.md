@@ -2,10 +2,6 @@
 
 <div align="center">
     <img src="./imgsrc/beam_TO.gif" width="800">
-</div>
-
-
-<div align="center">
     <img src="./imgsrc/clip_TO_2.gif" width="800">
 </div>
 
