@@ -2,6 +2,7 @@
 
 <div align="center">
     <img src="./imgsrc/beam_TO.gif" width="800">
+    <div style="height: 20px;"></div> <!-- Space between images -->
     <img src="./imgsrc/clip_TO_2.gif" width="800">
 </div>
 
