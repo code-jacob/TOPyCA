@@ -1,5 +1,24 @@
 # TOPyCA - Topology Optimization with Python and code_aster
 
+The idea is to use code_aster to solve simple static analysis and print VMIS of node group called "REGION" to .txt. 
+Next, use a python code to calculate new density using this file and this density distribution then map as Young's modulus 
+onto a mesh in a new analysis and solve.
+And so on..
+
+The whole SIMP method is written in python file so it is basically code_aster + python or more precisely bash + code_aster + python coupling,
+thus every stage is done separately and the loops are not done inside one code_aster run. This way leads to:
+
+- postprocessing can be done when optimization is running
+- code is more comprehensible
+- possibility to change parameters manually when running, for example target volume fraction, penalization factor etc.
+- easily add new manufacturing constrains
+- it can be changed for shells or 2D/axisymmetry as well
+- for small cases the most time consuming part is start up of code_aster, the solution of linear static and calculation of densities takes only a second
+- element volume is considered constant so far, however to create uniform mesh is quite easy for optimization domain, since usually it have simple shape. 
+  Moreover, high mesh density is needed everywhere anyway...
+
+More on: https://forum.code-aster.org/public/d/20385-topological-optimization/13
+
 <div align="center">
     <img src="./imgsrc/beam_TO.gif" width="800">
     <br><br>
