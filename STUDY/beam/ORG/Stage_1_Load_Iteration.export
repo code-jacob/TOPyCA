@@ -1,0 +1,32 @@
+P actions           make_etude
+P debug             nodebug
+P memjob            102400000
+P memory_limit      100000.0
+P mode              interactif
+P mpi_nbcpu         1
+P mpi_nbnoeud       1
+P ncpus             6
+P nomjob            Stage_1_Load_Iteration_-time-
+
+P rep_trav          -
+P server            localhost
+P time_limit        720000.0
+P tpsjob            12001
+
+P version           stable
+# P version           testing
+# P version           16.2
+# P version           testing_mpi
+
+A memjeveux         12500.0
+A tpmax             720000.0
+
+F comm Stage_1_Load_Iteration_-time-.comm                              D   1
+F mess ./RESULTS/Stage_1_Load_Iteration_-time-.mess                    R   6
+
+F libr ./RESULTS/R_1_Load_Iteration_-time-.rmed                        R   4
+F libr ./RESULTS/VMIS_-time-.csv                                       R   5
+F libr ./RESULTS/INVA_2_-time-.csv                                     R   7
+
+R base base-Stage_0                                                    D   0
+R base base-Stage_TO_-time-                                            R   0

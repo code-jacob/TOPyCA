@@ -1,0 +1,25 @@
+P actions           make_etude
+P debug             nodebug
+P memjob            102400000
+P memory_limit      100000.0
+P mode              interactif
+P mpi_nbcpu         1
+P mpi_nbnoeud       1
+P ncpus             5
+P nomjob            Stage_0_PreProcess
+
+P rep_trav          -
+P server            localhost
+P time_limit        720000.0
+P tpsjob            12001
+P version           stable
+A memjeveux         12500.0
+A tpmax             720000.0
+
+F comm Stage_0_PreProcess.comm                  D   1
+F mess ./RESULTS/Stage_0_PreProcess.mess        R   6
+
+F libr MESH.med                                 D   2
+F libr MESH_GROUPS.med                          R   3
+
+R base base-Stage_0                             R   0
