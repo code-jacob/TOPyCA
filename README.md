@@ -52,7 +52,7 @@ or do it manually
 - tick Snap To Cell With Closest Point, untick Compute Tolerance
 
 How to extract 3D shape:
-- apply filter CLip
+- apply filter Clip
 - Clip Type -> Scalar -> density
 - value -> for example 0.5
 
