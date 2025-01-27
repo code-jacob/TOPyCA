@@ -1,16 +1,14 @@
 git status
 
-git add         git.sh LICENSE README.md 
 # git add         imgsrc
-
-git add         ./MESH beam_hole.med
-
+git add         git.sh LICENSE README.md 
+git add         ./MESH/beam_hole.med
 
 git commit -m "this is commit"
 
-# git push
+git push
 
-# git ls-files
+git ls-files
 
 
 # git log
