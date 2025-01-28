@@ -12,7 +12,7 @@ thus every stage is done separately and the loops are not done inside one code_a
 - code is more comprehensible
 - possibility to change parameters manually when running, for example target volume fraction, penalization factor etc.
 - easily add new manufacturing constrains
-- it can be changed for shells or 2D/axisymmetry as well
+- it can be modified for shells or 2D/axisymmetry as well
 - for small cases the most time consuming part is start up of code_aster, the solution of linear static and calculation of densities takes only a second
 - element volume is considered constant so far, however to create uniform mesh is quite easy for optimization domain, since usually it have simple shape. 
   Moreover, high mesh density is needed everywhere anyway...
@@ -88,11 +88,12 @@ For updating: right click - Change File - select different density_{iteration}.c
 ## How to cite 
 If you've used TOPyCA in your research or work, or find it useful in any way, please consider to cite:
 ```
-{ title = {TOPyCA - Topology Optimization with Python and code_aster},
+@misc{code-jacob,
+  title = {TOPyCA - Topology Optimization with Python and code_aster},
   author = {Jakub Trušina}, 
   year = {2024},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/code-jacob/to}},
+  howpublished = {\url{https://github.com/code-jacob/TOPyCA}},
 }
 ```
