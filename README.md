@@ -12,14 +12,18 @@ thus every stage is done separately and the loops are not done inside one code_a
 - code is more comprehensible
 - possibility to change parameters manually when running, for example target volume fraction, penalization factor etc.
 - easily add new manufacturing constrains
-- it can be modified for shells or 2D/axisymmetry as well
+- it can be modified and used for shells or 2D/axisymmetry as well
 - for small cases the most time consuming part is start up of code_aster, the solution of linear static and calculation of densities takes only a second
 
 **NOTES**:
+
 • Element volume is considered constant so far, however to create uniform mesh is quite easy for optimization domain, since usually it has simple shape. Moreover, uniform high mesh density is needed anyway...
+
 • Stamping and casting manufacturing constraints are implemented only for cartesian direction to increase performance since in 
 99% of cases an arbitrary direction is not needed (but with a little effort it could be implemented as well). However, user has to switch manually COOR_X, COOR_Y, COOR_Z in the function.
+
 • For symmetry manufacturing constraint, an arbitrary direction is implemented.
+
 • To implement more than one symmetry constraint, user has to copy the function and rename it for example to symmetry_constraint_2, and apply the constraints sequentially. However, I have not tested it yet.
 
 More on: https://forum.code-aster.org/public/d/20385-topological-optimization/13
