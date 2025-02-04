@@ -27,7 +27,7 @@ More on: https://forum.code-aster.org/public/d/20385-topological-optimization/13
 <div align="center">
     <img src="./IMAGES/beam_TO.gif" width="800">
     <br><br>
-    <img src="./IMAGES/clip_TO_2.gif" width="800">
+    <img src="./IMAGES/clip/clip_TO_2.gif" width="800">
 </div>
 
 ## Prerequisites
