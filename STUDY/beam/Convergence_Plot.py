@@ -30,6 +30,7 @@ df = df.rename(columns={'volume_tol': 'Volume Fraction Tolerance'})
 df = df.rename(columns={'error_vol': 'Volume Fraction Error'})
 df = df.rename(columns={'radius': 'Filtering Radius'})
 df = df.rename(columns={'move': 'Move Limit'})
+df = df.rename(columns={'relaxation_factor': 'Relaxation Factor'})
 
 columns = df.columns
 print("columns =", list(columns)  )

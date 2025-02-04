@@ -114,6 +114,7 @@ A_1 = EXTR_TABLE(NOM_PARA='VOL',
                  TYPE_RESU='REEL')
 
 
+# ============================== beam ==============================
 
 force_1 = -10000 / A_1
 
@@ -136,6 +137,59 @@ fix = AFFE_CHAR_MECA(DDL_IMPO=_F(DX=0.0,
                                  GROUP_MA=('fix', )),
 
                      MODELE=MODEL)
+
+
+# # ============================== clip ==============================
+# force_1 = -10000 / A_1
+
+
+
+# Force = AFFE_CHAR_MECA(FORCE_FACE=_F(FY=force_1,
+
+#                                      GROUP_MA=('F_1', )),
+
+#                        MODELE=MODEL)
+
+# fix = AFFE_CHAR_MECA(DDL_IMPO=(  _F(DY=0.0,
+#                                   GROUP_MA=('fix', )),
+
+#                                  _F(DX=0.0,
+#                                   GROUP_NO=('dx', )),
+
+#                                  _F(DX=0.0, 
+#                                     DZ=0.0,
+#                                   GROUP_NO=('dxdz', ))),
+#                      MODELE=MODEL)
+
+# ============================== disk ==============================
+
+# P = 1.8
+# force_1 = -( P * (pi*3800**2)/4) / (A_1 * 2)
+
+# hinge = AFFE_CHAR_MECA(DDL_IMPO=_F(
+                                 
+#                                  # DX=0.0,
+
+#                                  DY=0.0,
+
+#                                  DZ=0.0,
+
+#                                  GROUP_MA=('fix', )),
+
+#                      MODELE=MODEL)
+
+# symmetry = AFFE_CHAR_MECA(DDL_IMPO=(_F(DX=0.0,
+#                                        GROUP_MA=('sym_x', )),
+
+#                               ),
+#                      MODELE=MODEL)
+
+# Force = AFFE_CHAR_MECA(FORCE_FACE=_F(FY=force_1,
+
+#                                      GROUP_MA=('F_1', )),
+
+#                        MODELE=MODEL)
+
 
 
 

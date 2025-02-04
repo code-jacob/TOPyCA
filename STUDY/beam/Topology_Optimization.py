@@ -24,28 +24,29 @@ density_min = 0.001
 density_max = 1
 theta = 1/2
 
-aim_volume_fraction = 0.4
+aim_volume_fraction = 0.3
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.04
+volume_tol_min = 0.06
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
 max_iter = 200                  # Maximum iterations for Lambda adjustment
 
-radius = 2.5                    # higher than element size to eliminate checkerboard pattern
-radius_end = 2           # used when p = 3
+radius = 2.3                    # higher than element size to eliminate checkerboard pattern
+radius_end = 2                  # used when p = 3
 
 relaxation = "no"
 # relaxation = "yes"
+p_relax = 3                     # start relaxing when p = 3
 if relaxation == "yes":
-    relaxation_factor = 0.5  # 0.4 -> allow 60% density change in next iteration for each point
+    relaxation_factor = 0.8  # 0.8 -> allow 20% density change in next iteration for each point
 
 # "yes" "no"
 symmetry = "no"
 # symmetry = "yes"
 if symmetry == "yes":
     treshold_symmetry = 0.5
-    radius_symmetry = 0.2
+    radius_symmetry = 0.7
     point_symmetry = (0, 25, 0)
     direction_symmetry = (0, 1, 0)
 
@@ -67,7 +68,7 @@ if casting == "yes":
 two_way_casting = "no"
 # two_way_casting = "yes"
 if two_way_casting == "yes":
-    radius_casting = 40
+    radius_casting = 0.1
     treshold_casting = 0.5
     # direction_casting = (0,0,1)      # to change the direction you have to edit the function 
                                        # change COOR_* accordingly, only cartesian for now
@@ -218,7 +219,9 @@ df_1 = pd.read_csv(inp_1, skiprows=4, sep=r'\s+')
 inp_2 = f"./RESULTS/INVA_2_{time_previous:.0f}.csv"
 df_2 = pd.read_csv(inp_2, skiprows=4, sep=r'\s+')
 # print(df_1)
-
+if relaxation == "no":
+    relaxation_factor = 0
+    
 if time_previous == 1:
     df = df_1
     df["INVA_2"] = df_2["INVA_2"]
@@ -226,16 +229,17 @@ if time_previous == 1:
     residual = 1
     error_vol = 1
 
-    Convergence_1 = pd.DataFrame({'Time':             [time_previous],
-                                  'lambda':           [Lambda],
-                                  'p':                [p],
-                                  'e':                [e_prev],
-                                  'residual':         [residual],
-                                  'vol':              [aim_volume_fraction],
-                                  'volume_tol':       [volume_tol],
-                                  'error_vol':        [error_vol],
-                                  'radius':           [radius],
-                                  'move':             [move],
+    Convergence_1 = pd.DataFrame({'Time':                   [time_previous],
+                                  'lambda':                 [Lambda],
+                                  'p':                      [p],
+                                  'e':                      [e_prev],
+                                  'residual':               [residual],
+                                  'vol':                    [aim_volume_fraction],
+                                  'volume_tol':             [volume_tol],
+                                  'error_vol':              [error_vol],
+                                  'radius':                 [radius],
+                                  'move':                   [move],
+                                  'relaxation_factor':      [relaxation_factor],
 
                                   })
 else:
@@ -252,6 +256,7 @@ else:
     volume_tol = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'volume_tol'].values[0]
     radius = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'radius'].values[0]
     move = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'move'].values[0]
+    # relaxation_factor = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'relaxation_factor'].values[0]
 
 # print(df.columns.values)
 # print(df)
@@ -319,6 +324,9 @@ if residual < e_tol_vol and p == 1:
     volume_tol = max(volume_tol / 2, volume_tol_min)
 print("Tolerance =", volume_tol)
 
+if relaxation == "yes" and round(p,3) < p_relax:
+    relaxation_factor = 0
+
 if minimize == "VMIS":
     e = df["VMIS"]
 elif minimize == "INVA_2":
@@ -326,7 +334,7 @@ elif minimize == "INVA_2":
 elif minimize == "ENERGY":
     e = df["VMIS"] * df["INVA_2"]
 
-if relaxation == "yes":
+if relaxation == "yes" and p >= p_relax:
     density_prev = df["density"]
 
 update_density()
@@ -351,13 +359,13 @@ if two_way_casting == "yes":
 
 filtering()
 
-if relaxation == "yes":
+if relaxation == "yes" and p >= p_relax:
     # df["density"] = relaxation_factor * density_prev + (1-relaxation_factor) * df["density"]
     density_diff =  df["density"] - density_prev
     df["density"] = density_prev + density_diff*(1-relaxation_factor)
-    print("relaxation factor =", relaxation_factor)
+    print("Relaxation factor =", relaxation_factor)
 
-if p >= 3:
+if p >= p_max:
     radius = radius_end
 
 e_final = np.linalg.norm(e)
@@ -391,16 +399,17 @@ print("e_final =", e_final)
 
 df.to_csv(f"./RESULTS/density_{step_time_end:.0f}.csv", sep=",", index=False)
 
-Convergence_2 = pd.DataFrame({'Time':             [step_time_end],
-                              'lambda':           [Lambda],
-                              'p':                [p],
-                              'e':                [e_final],
-                              'residual':         [residual],
-                              'vol':              [current_volume_fraction],
-                              'volume_tol':       [volume_tol],
-                              'error_vol':        [error_vol],
-                              'radius':           [radius],
-                              'move':             [move],
+Convergence_2 = pd.DataFrame({'Time':                   [step_time_end],
+                              'lambda':                 [Lambda],
+                              'p':                      [p],
+                              'e':                      [e_final],
+                              'residual':               [residual],
+                              'vol':                    [current_volume_fraction],
+                              'volume_tol':             [volume_tol],
+                              'error_vol':              [error_vol],
+                              'radius':                 [radius],
+                              'move':                   [move],
+                              'relaxation_factor':      [relaxation_factor],
 
                               })
 
@@ -415,6 +424,7 @@ merged_Convergence['volume_tol'] = merged_Convergence['volume_tol'].apply(lambda
 merged_Convergence['error_vol'] = merged_Convergence['error_vol'].apply(lambda x: f"{x:.3f}")
 merged_Convergence['radius'] = merged_Convergence['radius'].apply(lambda x: f"{x:g}")
 merged_Convergence['move'] = merged_Convergence['move'].apply(lambda x: f"{x:g}")
+merged_Convergence['relaxation_factor'] = merged_Convergence['relaxation_factor'].apply(lambda x: f"{x:g}")
 
 merged_Convergence.to_csv("./RESULTS/Convergence.csv", sep='\t', index=False)
 # merged_Convergence.to_csv("./RESULTS/Convergence.csv",  sep='\t', float_format="%.6E", index=False)

@@ -9,3 +9,4 @@ rm -v *.export
 rm -v *.med
 
 rm -v *_run.py
+rm log.*

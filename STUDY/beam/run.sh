@@ -13,7 +13,7 @@ cp Topology_Optimization.py Topology_Optimization_run.py
 cp Postprocess.py Postprocess_run.py
 
 time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
-nth_result=1                                        # print result only n-th iteration
+nth_result=2                                        # print result only n-th iteration
 
 aim_volume_fraction=$(grep -oP '^aim_volume_fraction\s*=\s*\K[0-9]+(\.[0-9]+)?' Topology_Optimization.py) ; echo "aim_volume_fraction:" $aim_volume_fraction
 sed -i "s/^aim_volume_fraction = .*/aim_volume_fraction = $aim_volume_fraction/" Postprocess_run.py
@@ -22,27 +22,27 @@ for i in $(seq 1 $time_end)
 do
     echo "Iteration:" $i
     j=$(echo "$i-1" | bc -l )
-    cp Stage_1_Load_Iteration.comm Stage_1_Load_Iteration_${i}.comm
-    cp Stage_1_Load_Iteration.export Stage_1_Load_Iteration_${i}.export
-    sed -i "s/-time-/${i}/g" Stage_1_Load_Iteration_${i}.export
-    sed -i "s/^time_previous = .*/time_previous = ${j}/" Stage_1_Load_Iteration_${i}.comm
-    sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Load_Iteration_1.comm
+    cp Stage_1_Iteration.comm Stage_1_Iteration_${i}.comm
+    cp Stage_1_Iteration.export Stage_1_Iteration_${i}.export
+    sed -i "s/-time-/${i}/g" Stage_1_Iteration_${i}.export
+    sed -i "s/^time_previous = .*/time_previous = ${j}/" Stage_1_Iteration_${i}.comm
+    sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Iteration_1.comm
 
 if [ "$i" -eq 1 ]; then
     singularity run ~/salome_meca-lgpl-2021.0.0-0-20210601-scibian-9.sif shell << END
     as_run Stage_0_PreProcess.export
-    as_run Stage_1_Load_Iteration_${i}.export
+    as_run Stage_1_Iteration_${i}.export
 END
 else
 sed -i "s/^time_previous = .*/time_previous = $j/" Topology_Optimization_run.py
 python3 Topology_Optimization_run.py
 
 if (( i % nth_result != 0 )) && [ ! -e ./RESULTS/stop.txt ]; then
-    sed -i 's/^F libr \.\/RESULTS\/R_2_Load_Iteration/# &/' Stage_1_Load_Iteration_${i}.export
+    sed -i 's/^F libr \.\/RESULTS\/R_1_Iteration/# &/' Stage_1_Iteration_${i}.export
 fi
 
     singularity run ~/salome_meca-lgpl-2021.0.0-0-20210601-scibian-9.sif shell << END
-    as_run Stage_1_Load_Iteration_${i}.export
+    as_run Stage_1_Iteration_${i}.export
 END
 
 rm -rf -v base-Stage_TO*
