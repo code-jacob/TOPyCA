@@ -1,6 +1,6 @@
 git status
 
-git add         imgsrc
+git add         IMAGES
 git add         git.sh LICENSE README.md
 
 git add         ./MESH/beam_hole.med
