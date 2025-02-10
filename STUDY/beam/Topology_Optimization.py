@@ -26,20 +26,20 @@ theta = 1/2
 
 aim_volume_fraction = 0.3
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.06
+volume_tol_min = 0.03
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
 max_iter = 200                  # Maximum iterations for Lambda adjustment
 
-radius = 2.3                    # higher than element size to eliminate checkerboard pattern
-radius_end = 2                  # used when p = 3
+radius = 2                    # higher than element size to eliminate checkerboard pattern
+radius_end = 1.6                  # used when p = 3
 
 relaxation = "no"
 # relaxation = "yes"
 p_relax = 3                     # start relaxing when p = 3
 if relaxation == "yes":
-    relaxation_factor = 0.8  # 0.8 -> allow 20% density change in next iteration for each point
+    relaxation_factor_end = 0.8  # 0.8 -> allow 20% density change in next iteration for each point
 
 # "yes" "no"
 symmetry = "no"
@@ -219,16 +219,16 @@ df_1 = pd.read_csv(inp_1, skiprows=4, sep=r'\s+')
 inp_2 = f"./RESULTS/INVA_2_{time_previous:.0f}.csv"
 df_2 = pd.read_csv(inp_2, skiprows=4, sep=r'\s+')
 # print(df_1)
-if relaxation == "no":
-    relaxation_factor = 0
-    
+
+volume_tol_start = volume_tol
 if time_previous == 1:
     df = df_1
     df["INVA_2"] = df_2["INVA_2"]
     e_prev = 0
     residual = 1
     error_vol = 1
-
+    relaxation_factor = 0
+    
     Convergence_1 = pd.DataFrame({'Time':                   [time_previous],
                                   'lambda':                 [Lambda],
                                   'p':                      [p],
@@ -256,7 +256,7 @@ else:
     volume_tol = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'volume_tol'].values[0]
     radius = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'radius'].values[0]
     move = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'move'].values[0]
-    # relaxation_factor = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'relaxation_factor'].values[0]
+    relaxation_factor = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'relaxation_factor'].values[0]
 
 # print(df.columns.values)
 # print(df)
@@ -304,6 +304,7 @@ def volume_constraint():
         else:
             Lambda /= lambda_multiplier  # Decrease Lambda to increase density
         update_density()
+        
         current_volume_fraction = np.mean(df["density"])
         iter_count += 1
         print(f"Iteration {iter_count}: Lambda = {Lambda}, Volume Fraction = {current_volume_fraction}")
@@ -324,18 +325,12 @@ if residual < e_tol_vol and p == 1:
     volume_tol = max(volume_tol / 2, volume_tol_min)
 print("Tolerance =", volume_tol)
 
-if relaxation == "yes" and round(p,3) < p_relax:
-    relaxation_factor = 0
-
 if minimize == "VMIS":
     e = df["VMIS"]
 elif minimize == "INVA_2":
     e = df["INVA_2"]
 elif minimize == "ENERGY":
     e = df["VMIS"] * df["INVA_2"]
-
-if relaxation == "yes" and p >= p_relax:
-    density_prev = df["density"]
 
 update_density()
 volume_constraint()
@@ -359,36 +354,42 @@ if two_way_casting == "yes":
 
 filtering()
 
-if relaxation == "yes" and p >= p_relax:
+if relaxation == "yes" and round(p,3) >= p_relax:
+    density_prev = df["density"]
+    relaxation_factor = relaxation_factor_end
     # df["density"] = relaxation_factor * density_prev + (1-relaxation_factor) * df["density"]
     density_diff =  df["density"] - density_prev
     df["density"] = density_prev + density_diff*(1-relaxation_factor)
     print("Relaxation factor =", relaxation_factor)
-
-if p >= p_max:
-    radius = radius_end
 
 e_final = np.linalg.norm(e)
 if time_previous != 1:
     residual = abs((e_final - e_prev)/e_prev)
     residual_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'residual'].values[0]
     p_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'p'].values[0]
+    Lambda_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'lambda'].values[0]
     
-    # if p >= 3:
-    #     move = 0.05
-
-    # if all(residual_ < e_tol for residual_ in (residual, residual_prev)) and volume_tol == volume_tol_min :
-    if residual < e_tol and residual_prev < e_tol and volume_tol == volume_tol_min:
-    # if residual < e_tol and volume_tol == volume_tol_min :
-        
-        p = min(p + p_step, p_max)
-        if p > 1:
-            radius = radius
-
-        if p >= p_max and p_prev >= p_max:
-            print("CONVERGED")
-            with open("./RESULTS/stop.txt", "w") as file:
-                pass
+    if p >= p_max:
+        radius = radius_end
+        # move = 0.05
+    
+    if Lambda != Lambda_prev :
+        volume_tol = max(volume_tol_min*2, volume_tol)
+    
+    # if residual < e_tol :
+    # if all(residual_ < e_tol for residual_ in (residual, residual_prev)) :
+    if residual < e_tol and residual_prev < e_tol :
+        if p >= 3:
+            volume_tol = volume_tol_min
+        if error_vol < volume_tol_min:
+            p = min(p + p_step, p_max)
+            
+            # if p > p_prev :
+            #     volume_tol = volume_tol_start
+            
+            if p >= p_max and p_prev >= p_max:
+                print("Solution CONVERGED")
+                with open("./RESULTS/stop.txt", "w") as file: pass
 
 df["INST"] = step_time_end
 df["ENERGY"] = df["VMIS"] * df["INVA_2"]

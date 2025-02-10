@@ -11,6 +11,7 @@ thus every stage is done separately and the loops are not done inside one code_a
 - postprocessing can be done when optimization is running
 - code is more comprehensible
 - possibility to change parameters manually when running, for example target volume fraction, penalization factor etc.
+- possibility to restart optimization from specified iteration
 - easily add new manufacturing constrains
 - it can be modified and used for shells or 2D/axisymmetry as well
 - for small cases the most time consuming part is start up of code_aster, the solution of linear static and calculation of densities takes only a second
@@ -24,7 +25,7 @@ thus every stage is done separately and the loops are not done inside one code_a
 
 • For symmetry manufacturing constraint, an arbitrary direction is implemented.
 
-• To implement more than one symmetry constraint, user has to copy the function and rename it for example to symmetry_constraint_2, and apply the constraints sequentially. However, I have not tested it yet.
+• To use more than one symmetry constraint, user has to copy the function and rename it for example to symmetry_constraint_2, and apply the constraints sequentially. However, I have not tested it yet.
 
 More on: https://forum.code-aster.org/public/d/20385-topological-optimization/13
 
@@ -36,12 +37,12 @@ More on: https://forum.code-aster.org/public/d/20385-topological-optimization/13
 
 ## Prerequisites
 
-- code_aster (tested version is 15.4)
+- code_aster (tested version is 15.4, 16.2)
 - python3 with all necessary libraries, for example Anaconda distribution
 
 After downloading, you have to change all lines containing
 ```bash
-$ singularity run ~/salome_meca-lgpl-2021.0.0-0-20210601-scibian-9.sif shell << END
+$ singularity run ~/salome_meca-lgpl-2022.1.0-1-20221225-scibian-9.sif shell << END
 ```
 according to your container name in file **run.sh**.
 If you use code_aster without salome_meca, then delete these lines (lines with END also).

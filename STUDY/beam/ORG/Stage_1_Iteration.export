@@ -13,10 +13,10 @@ P server            localhost
 P time_limit        720000.0
 P tpsjob            12001
 
-P version           stable
+# P version           stable
 # P version           stable_mpi
 # P version           testing
-# P version           16.2
+P version           16.2
 # P version           testing_mpi
 
 A memjeveux         12500.0

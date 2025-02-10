@@ -35,7 +35,7 @@ df = df.rename(columns={'relaxation_factor': 'Relaxation Factor'})
 columns = df.columns
 print("columns =", list(columns)  )
 
-curve_color_0 = plt.cm.viridis(np.linspace(0, 1, len(columns)-1))
+curve_color_0 = plt.cm.jet(np.linspace(0, 1, len(columns)-1))
 def lighten_color(color, factor):
     white = np.array([255/255, 255/255, 255/255])  # Light blue-ish white
     lightened_rgb = (1 - factor) * color[:3] + factor * white

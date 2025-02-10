@@ -13,7 +13,7 @@ cp Topology_Optimization.py Topology_Optimization_run.py
 cp Postprocess.py Postprocess_run.py
 
 time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
-nth_result=2                                        # print result only n-th iteration
+nth_result=2                                        # print results only n-th iteration
 
 aim_volume_fraction=$(grep -oP '^aim_volume_fraction\s*=\s*\K[0-9]+(\.[0-9]+)?' Topology_Optimization.py) ; echo "aim_volume_fraction:" $aim_volume_fraction
 sed -i "s/^aim_volume_fraction = .*/aim_volume_fraction = $aim_volume_fraction/" Postprocess_run.py
@@ -29,7 +29,7 @@ do
     sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Iteration_1.comm
 
 if [ "$i" -eq 1 ]; then
-    singularity run ~/salome_meca-lgpl-2021.0.0-0-20210601-scibian-9.sif shell << END
+    singularity run ~/salome_meca-lgpl-2022.1.0-1-20221225-scibian-9.sif shell << END
     as_run Stage_0_PreProcess.export
     as_run Stage_1_Iteration_${i}.export
 END
@@ -41,7 +41,7 @@ if (( i % nth_result != 0 )) && [ ! -e ./RESULTS/stop.txt ]; then
     sed -i 's/^F libr \.\/RESULTS\/R_1_Iteration/# &/' Stage_1_Iteration_${i}.export
 fi
 
-    singularity run ~/salome_meca-lgpl-2021.0.0-0-20210601-scibian-9.sif shell << END
+    singularity run ~/salome_meca-lgpl-2022.1.0-1-20221225-scibian-9.sif shell << END
     as_run Stage_1_Iteration_${i}.export
 END
 
