@@ -13,7 +13,7 @@ thus every stage is done separately and the loops are not done inside one code_a
 - possibility to change parameters manually when running, for example target volume fraction, penalization factor etc.
 - possibility to restart optimization from specified iteration
 - easily add new manufacturing constrains
-- it can be modified and used for shells or 2D/axisymmetry as well
+- it can be modified and used for shells or 2D/axisymmetry as well (DKT tested so far)
 - for small cases the most time consuming part is start up of code_aster, the solution of linear static and calculation of densities takes only a second
 
 **NOTES**:

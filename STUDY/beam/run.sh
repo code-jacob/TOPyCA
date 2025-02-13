@@ -4,21 +4,26 @@
 start_time=$(date +%s%N)
 ######################## TIC ###########################
 
-bash clean.sh
-cp ../../MESH/beam_hole.med ./MESH.med
+time_start=1 ; echo "time_start:" $time_start       # !=1 when restarting 
+time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
+nth_result=1                                        # print results only n-th iteration
+
+if [ "$time_start" -eq 1 ]; then
+    bash clean.sh
+    cp ../../MESH/beam_hole.med ./MESH.med
+fi
 
 cp ./ORG/* .
+# cp ./ORG_DKT/* .      # uncomment to use .comm for DKT shell elements, and change mesh to clip_shell.med
+
+rm -rf -v temporary
 echo "$PWD"/temporary   ;   sed -i "s|P rep_trav .*|P rep_trav $PWD/temporary|" *.export
 cp Topology_Optimization.py Topology_Optimization_run.py
 cp Postprocess.py Postprocess_run.py
 
-time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
-nth_result=2                                        # print results only n-th iteration
-
 aim_volume_fraction=$(grep -oP '^aim_volume_fraction\s*=\s*\K[0-9]+(\.[0-9]+)?' Topology_Optimization.py) ; echo "aim_volume_fraction:" $aim_volume_fraction
 sed -i "s/^aim_volume_fraction = .*/aim_volume_fraction = $aim_volume_fraction/" Postprocess_run.py
-
-for i in $(seq 1 $time_end)
+for i in $(seq $time_start $time_end)
 do
     echo "Iteration:" $i
     j=$(echo "$i-1" | bc -l )

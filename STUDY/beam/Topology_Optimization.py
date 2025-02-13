@@ -26,7 +26,7 @@ theta = 1/2
 
 aim_volume_fraction = 0.3
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.03
+volume_tol_min = 0.06
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
@@ -367,26 +367,18 @@ if time_previous != 1:
     residual = abs((e_final - e_prev)/e_prev)
     residual_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'residual'].values[0]
     p_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'p'].values[0]
-    Lambda_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'lambda'].values[0]
+    # Lambda_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'lambda'].values[0]
     
     if p >= p_max:
         radius = radius_end
-        # move = 0.05
+        
+    # if Lambda != Lambda_prev and p >= 3:
+    #     volume_tol_min = volume_tol_min*2
+    #     volume_tol = max(volume_tol_min, volume_tol)
     
-    if Lambda != Lambda_prev :
-        volume_tol = max(volume_tol_min*2, volume_tol)
-    
-    # if residual < e_tol :
-    # if all(residual_ < e_tol for residual_ in (residual, residual_prev)) :
     if residual < e_tol and residual_prev < e_tol :
-        if p >= 3:
-            volume_tol = volume_tol_min
         if error_vol < volume_tol_min:
             p = min(p + p_step, p_max)
-            
-            # if p > p_prev :
-            #     volume_tol = volume_tol_start
-            
             if p >= p_max and p_prev >= p_max:
                 print("Solution CONVERGED")
                 with open("./RESULTS/stop.txt", "w") as file: pass
