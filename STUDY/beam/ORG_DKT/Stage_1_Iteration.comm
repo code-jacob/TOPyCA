@@ -1,0 +1,229 @@
+POURSUITE(LANG='EN')
+
+time_previous = 0
+step_time_end = time_previous + 1
+
+
+if time_previous == 0:
+   aim_volume_fraction = 0
+   E_0 = E_const*aim_volume_fraction
+   E_FUNC = DEFI_CONSTANTE(VALE=E_0)
+else:
+   # =======================================================================
+   # IMPORT ELASTIC MODULUS FROM .csv
+
+   import numpy as np
+   from scipy.interpolate import NearestNDInterpolator
+   import pandas as pd
+   import os
+
+   cwd = os.getcwd()
+   print(cwd)
+
+   inp = f"../RESULTS/density_{step_time_end:.0f}.csv"
+   # inp = f"../../RESULTS/density_{step_time_end:.0f}.csv"   # for mpi
+
+   df = pd.read_csv( inp , delimiter="," )               # Load the data from the CSV file
+   print(df.columns.values)  
+   # print(df)
+
+   X = df['COOR_X']
+   Y = df['COOR_Y']
+   Z = df['COOR_Z']
+   E = df['density']*E_const
+   interp = NearestNDInterpolator((X, Y, Z), E)
+
+   def fc_E(x, y, z):
+      interp_value = interp(x, y, z)
+      return interp_value
+
+   E_FUNC = FORMULE(NOM_PARA=('X','Y','Z'), VALE='fc_E(X,Y,Z)',fc_E=fc_E)
+
+
+# =======================================================================
+
+
+
+steelTO = DEFI_MATERIAU(ELAS_FO=_F(E=E_FUNC,
+
+                                   NU=mu,
+
+                                   RHO=rho))
+
+
+
+field_GEO = CREA_CHAMP(MAILLAGE=MESH,
+                       NOM_CHAM='GEOMETRIE',
+                       OPERATION='EXTR',
+                       TYPE_CHAM='NOEU_GEOM_R')
+
+
+
+MATERIAL = AFFE_MATERIAU(AFFE=(_F(GROUP_MA=('SHELL', ),
+
+                                  MATER=(steel, )),
+
+                               _F(GROUP_MA=('REGION', ),
+
+                                  MATER=(steelTO, ))),
+
+                         AFFE_VARC=_F(CHAM_GD=field_GEO,
+
+                                      NOM_VARC='GEOM'),
+
+                         MODELE=MODEL)
+
+
+
+STA_L = MECA_STATIQUE(CARA_ELEM=ELEMPROP,
+                     
+                     CHAM_MATER=MATERIAL,
+
+                      EXCIT=(_F(CHARGE=fix),
+
+                             _F(CHARGE=Force)),
+
+                      INST=step_time_end,
+
+                      MODELE=MODEL,
+
+                      SOLVEUR=_F(METHODE='MUMPS'))
+
+
+
+
+STA_L_s = CALC_CHAMP(CRITERES=('SIEQ_ELGA', 'SIEQ_ELNO', 'EPEQ_ELGA', 'EPEQ_ELNO'),
+
+                     GROUP_MA=('SHELL', ),
+
+                     RESULTAT=STA_L)
+
+
+
+Top = POST_CHAMP(EXTR_COQUE=_F(NIVE_COUCHE='SUP',
+
+                               NOM_CHAM=('SIEQ_ELNO', 'EPEQ_ELNO'),
+
+                               NUME_COUCHE=shell_integration_points),
+
+                 GROUP_MA=('SHELL', ),
+
+                 RESULTAT=STA_L_s)
+
+
+
+Top = CALC_CHAMP(reuse=Top,
+
+                 CRITERES=('SIEQ_NOEU', 'EPEQ_NOEU'),
+
+                 GROUP_MA=('SHELL', ),
+
+                 RESULTAT=Top)
+
+
+
+Middle = POST_CHAMP(EXTR_COQUE=_F(NIVE_COUCHE='MOY',
+
+                                  NOM_CHAM=('SIEQ_ELNO', 'EPEQ_ELNO'),
+
+                                  NUME_COUCHE=layer_middle),
+
+                    GROUP_MA=('SHELL', ),
+
+                    RESULTAT=STA_L_s)
+
+
+
+Middle = CALC_CHAMP(reuse=Middle,
+
+                    CRITERES=('SIEQ_NOEU', 'EPEQ_NOEU'),
+
+                    GROUP_MA=('SHELL', ),
+
+                    RESULTAT=Middle)
+
+
+
+Bottom = POST_CHAMP(EXTR_COQUE=_F(NIVE_COUCHE='INF',
+
+                                  NOM_CHAM=('SIEQ_ELNO', 'EPEQ_ELNO'),
+
+                                  NUME_COUCHE=1),
+
+                    GROUP_MA=('SHELL', ),
+
+                    RESULTAT=STA_L_s)
+
+
+
+Bottom = CALC_CHAMP(reuse=Bottom,
+
+                    CRITERES=('SIEQ_NOEU', 'EPEQ_NOEU'),
+
+                    GROUP_MA=('SHELL', ),
+
+                    RESULTAT=Bottom)
+
+
+
+stress = POST_RELEVE_T(ACTION=_F(GROUP_NO=('REGION', ),
+
+                                 INTITULE='vmis',
+
+                                 NOM_CHAM='SIEQ_NOEU',
+
+                                 NOM_CMP=('VMIS', ),
+
+                                 OPERATION=('EXTRACTION', ),
+
+                                 RESULTAT=Top))
+
+
+
+strain = POST_RELEVE_T(ACTION=_F(GROUP_NO=('REGION', ),
+
+                                 INTITULE='strain',
+
+                                 NOM_CHAM='EPEQ_NOEU',
+
+                                 NOM_CMP=('INVA_2', ),
+
+                                 OPERATION=('EXTRACTION', ),
+
+                                 RESULTAT=Top))
+
+
+
+IMPR_RESU(RESU=(_F(RESULTAT=STA_L),
+
+                _F(RESULTAT=STA_L_s),
+
+                _F(RESULTAT=Top),
+
+                _F(RESULTAT=Middle),
+
+                _F(RESULTAT=Bottom),
+                
+                ),
+
+          UNITE=4)
+
+
+
+IMPR_TABLE(NOM_PARA=('INST', 'COOR_X', 'COOR_Y', 'COOR_Z', 'VMIS'),
+
+           TABLE=stress,
+
+           UNITE=5)
+
+
+
+IMPR_TABLE(NOM_PARA=('INST', 'COOR_X', 'COOR_Y', 'COOR_Z', 'INVA_2'),
+
+           TABLE=strain,
+
+           UNITE=7)
+
+
+
+FIN()

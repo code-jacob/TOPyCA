@@ -13,8 +13,8 @@ if [ "$time_start" -eq 1 ]; then
     cp ../../MESH/beam_hole.med ./MESH.med
 fi
 
-cp ./ORG/* .
-# cp ./ORG_DKT/* .      # uncomment to use .comm for DKT shell elements, and change mesh to clip_shell.med
+cp ./ORG_3D/* .
+# cp ./ORG_DKT/* .      # uncomment to use .comm for DKT shell elements, and change mesh to beam_shell.med
 
 rm -rf -v temporary
 echo "$PWD"/temporary   ;   sed -i "s|P rep_trav .*|P rep_trav $PWD/temporary|" *.export

@@ -4,6 +4,8 @@ git add         IMAGES
 git add         git.sh LICENSE README.md
 
 git add         ./MESH/beam_hole.med
+git add         ./MESH/beam_shell.med
+
 git add         ./STUDY/beam
 
 git commit -m "this is commit"
