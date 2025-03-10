@@ -13,8 +13,8 @@ start_time = time.time()
 
 # minimize = "VMIS"             # von Mises stress
 # minimize = "INVA_2"           # Equivalent Strain
-# minimize = "ENERGY"             # "pseudo/shear deformation energy" calculated simply as equivalent stress*strain
-minimize = "FLUX_MAG"           # flux
+# minimize = "ENERGY"           # "pseudo/shear deformation energy" calculated simply as equivalent stress*strain
+minimize = "FLUX_MAG"           # Laplacian of temperature * conductivity 
 
 p = 1
 p_max = 3

@@ -10,7 +10,7 @@ git add         ./MESH/heatsink.med
 git add         ./STUDY/beam
 git add         ./STUDY/heatsink
 
-git commit -m "extented with thermal analyses"
+git commit -m "extended with thermal analyses"
 
 git push
 
