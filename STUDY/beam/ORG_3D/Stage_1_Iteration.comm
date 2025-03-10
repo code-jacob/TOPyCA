@@ -12,13 +12,12 @@ else:
    # =======================================================================
    # IMPORT ELASTIC MODULUS FROM .csv
 
-   import numpy as np
    from scipy.interpolate import NearestNDInterpolator
    import pandas as pd
-   import os
-
-   cwd = os.getcwd()
-   print(cwd)
+   # import numpy as np
+   # import os
+   # cwd = os.getcwd()
+   # print(cwd)
 
    inp = f"../RESULTS/density_{step_time_end:.0f}.csv"
    # inp = f"../../RESULTS/density_{step_time_end:.0f}.csv"   # for mpi

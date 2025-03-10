@@ -1,0 +1,89 @@
+DEBUT(LANG='EN')
+
+
+
+Reference_Temp = 20
+
+
+
+Lambda_const = 45
+
+
+
+MESH_T = LIRE_MAILLAGE(FORMAT='MED',
+
+                       UNITE=2)
+
+
+
+MESH_T = DEFI_GROUP(reuse=MESH_T,
+
+                    CREA_GROUP_MA=_F(GROUP_MA=('Group_Of_All_Volumes', ),
+
+                                     NOM='ALL_VOLUMES'),
+
+                    MAILLAGE=MESH_T)
+
+
+
+MESH_T = DEFI_GROUP(reuse=MESH_T,
+
+                    CREA_GROUP_NO=_F(GROUP_MA='REGION'),
+
+                    MAILLAGE=MESH_T)
+
+
+
+MODEL_T = AFFE_MODELE(AFFE=_F(GROUP_MA=('Group_Of_All_Faces', 'Group_Of_All_Volumes'),
+
+                              MODELISATION='3D_DIAG',
+
+                              PHENOMENE='THERMIQUE'),
+
+                      MAILLAGE=MESH_T)
+
+
+
+Cp = DEFI_CONSTANTE(VALE=0.0)
+
+
+
+Lambda = DEFI_CONSTANTE(VALE=Lambda_const)
+
+
+
+steel = DEFI_MATERIAU(THER_FO=_F(LAMBDA=Lambda,
+
+                                 RHO_CP=Cp))
+
+
+
+# temperature = AFFE_CHAR_THER(MODELE=MODEL_T,
+#                              TEMP_IMPO=(_F(GROUP_MA=('x_min','y_max'),
+#                                            TEMP=20.0),
+#                                         _F(GROUP_MA=('x_max', 'y_min',),
+#                                            TEMP=100.0)))
+
+
+
+
+source = AFFE_CHAR_THER(MODELE=MODEL_T,
+
+                        SOURCE=_F(GROUP_MA=('Group_Of_All_Volumes', ),
+
+                                  SOUR=1),
+
+                        TEMP_IMPO=_F(GROUP_MA=('F_1', ),
+
+                                     TEMP=20.0))
+
+
+
+IMPR_RESU(RESU=_F(MAILLAGE=MESH_T),
+
+          UNITE=3)
+
+
+
+FIN()
+

@@ -5,7 +5,7 @@ P memory_limit      100000.0
 P mode              interactif
 P mpi_nbcpu         1
 P mpi_nbnoeud       1
-P ncpus             5
+P ncpus             4
 P nomjob            Stage_1_Iteration_-time-
 
 P rep_trav          -
@@ -26,8 +26,7 @@ F comm Stage_1_Iteration_-time-.comm                                   D   1
 F mess ./RESULTS/Stage_1_Iteration_-time-.mess                         R   6
 
 F libr ./RESULTS/R_1_Iteration_-time-.rmed                             R   4
-F libr ./RESULTS/VMIS_-time-.csv                                       R   5
-F libr ./RESULTS/INVA_2_-time-.csv                                     R   7
+F libr ./RESULTS/FLUX_-time-.csv                                       R   5
 
 R base base-Stage_0                                                    D   0
 R base base-Stage_TO_-time-                                            R   0

@@ -1,0 +1,140 @@
+POURSUITE(LANG='EN')
+
+time_previous = 0
+step_time_end = time_previous + 1
+
+
+if time_previous == 0:
+   aim_volume_fraction = 0
+   Lambda_0 = Lambda_const*aim_volume_fraction
+   Lambda_FUNC = DEFI_CONSTANTE(VALE=Lambda_0)
+else:
+   # =======================================================================
+   # IMPORT ELASTIC MODULUS FROM .csv
+
+   from scipy.interpolate import NearestNDInterpolator
+   import pandas as pd
+   # import numpy as np
+   # import os
+   # cwd = os.getcwd()
+   # print(cwd)
+
+   inp = f"../RESULTS/density_{step_time_end:.0f}.csv"
+   # inp = f"../../RESULTS/density_{step_time_end:.0f}.csv"   # for mpi
+
+   df = pd.read_csv( inp , delimiter="," )               # Load the data from the CSV file
+   print(df.columns.values)  
+   # print(df)
+
+   X = df['COOR_X']
+   Y = df['COOR_Y']
+   Z = df['COOR_Z']
+   E = df['density']*Lambda_const
+   interp = NearestNDInterpolator((X, Y, Z), E)
+
+   def fc_E(x, y, z):
+      interp_value = interp(x, y, z)
+      return interp_value
+
+   Lambda_FUNC = FORMULE(NOM_PARA=('X','Y','Z'), VALE='fc_E(X,Y,Z)',fc_E=fc_E)
+
+# =======================================================================
+
+
+
+steelTO = DEFI_MATERIAU(THER_FO=_F(LAMBDA=Lambda_FUNC,
+
+                                   RHO_CP=Cp))
+
+
+
+field_GEO = CREA_CHAMP(MAILLAGE=MESH_T,
+                       NOM_CHAM='GEOMETRIE',
+                       OPERATION='EXTR',
+                       TYPE_CHAM='NOEU_GEOM_R')
+
+MATERIAL_T = AFFE_MATERIAU(AFFE=(_F(GROUP_MA=('Group_Of_All_Volumes', ),
+
+                                    MATER=(steel, )),
+
+                                 _F(GROUP_MA=('REGION', ),
+
+                                    MATER=(steelTO, ))),
+
+                           AFFE_VARC=(_F(NOM_VARC='TEMP',
+
+                                        TOUT='OUI',
+
+                                        VALE_REF=Reference_Temp),
+                                        
+                                      _F(CHAM_GD=field_GEO,
+
+                                        NOM_VARC='GEOM')),
+
+                           MODELE=MODEL_T)
+
+
+
+TIMESTP0 = DEFI_LIST_REEL(DEBUT=0.0,
+
+                          INTERVALLE=_F(JUSQU_A=step_time_end,
+
+                                        NOMBRE=1))
+
+
+
+THER_L = THER_LINEAIRE(CHAM_MATER=MATERIAL_T,
+
+                       ETAT_INIT=_F(VALE=Reference_Temp),
+
+                       EXCIT=_F(CHARGE=source),
+
+                       INCREMENT=_F(LIST_INST=TIMESTP0),
+
+                       MODELE=MODEL_T)
+
+
+
+THER_L = CALC_CHAMP(reuse=THER_L,
+
+                    INST=(step_time_end, ),
+
+                    RESULTAT=THER_L,
+
+                    THERMIQUE=('FLUX_NOEU', ))
+
+
+
+flux = POST_RELEVE_T(ACTION=_F(GROUP_NO=('REGION', ),
+
+                               INST=(step_time_end, ),
+
+                               INTITULE='flux',
+
+                               NOM_CHAM='FLUX_NOEU',
+
+                               NOM_CMP=('FLUX', 'FLUY', 'FLUZ'),
+
+                               OPERATION=('EXTRACTION', ),
+
+                               RESULTAT=THER_L))
+
+
+IMPR_RESU(RESU=_F(GROUP_MA=('Group_Of_All_Volumes', ),
+
+                  RESULTAT=THER_L),
+                  
+          UNITE=4)
+
+
+
+IMPR_TABLE(NOM_PARA=('INST', 'COOR_X', 'COOR_Y', 'COOR_Z', 'FLUX', 'FLUY', 'FLUZ'),
+
+           TABLE=flux,
+
+           UNITE=5)
+
+
+
+FIN()
+

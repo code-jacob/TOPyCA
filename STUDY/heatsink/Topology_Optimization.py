@@ -13,14 +13,16 @@ start_time = time.time()
 
 # minimize = "VMIS"             # von Mises stress
 # minimize = "INVA_2"           # Equivalent Strain
-minimize = "ENERGY"             # "pseudo/shear deformation energy" calculated simply as equivalent stress*strain
+# minimize = "ENERGY"             # "pseudo/shear deformation energy" calculated simply as equivalent stress*strain
+minimize = "FLUX_MAG"           # flux
 
 p = 1
 p_max = 3
 p_step = 0.5
 move = 0.2
-e_tol = 0.0002
-density_min = 0.001
+e_tol = 1e-4
+e_tol_end = 1e-4
+density_min = 1e-3
 density_max = 1
 theta = 1/2
 
@@ -32,8 +34,8 @@ Lambda = 1
 lambda_multiplier = 1.1
 max_iter = 200                  # Maximum iterations for Lambda adjustment
 
-radius = 2                    # higher than element size to eliminate checkerboard pattern
-radius_end = 1.6                  # used when p = 3
+radius = 1.1                    # higher than element size to eliminate checkerboard pattern
+radius_end = radius                  # used when p = 3
 
 relaxation = "no"
 # relaxation = "yes"
@@ -214,16 +216,27 @@ print("Iteration = ", step_time_end)
 print("Aim volume fraction = ", aim_volume_fraction)
 print("Minimize :", minimize)
 
-inp_1 = f"./RESULTS/VMIS_{time_previous:.0f}.csv"
-df_1 = pd.read_csv(inp_1, skiprows=4, sep=r'\s+')
-inp_2 = f"./RESULTS/INVA_2_{time_previous:.0f}.csv"
-df_2 = pd.read_csv(inp_2, skiprows=4, sep=r'\s+')
+if minimize == "FLUX_MAG":
+    inp_1 = f"./RESULTS/FLUX_{time_previous:.0f}.csv"
+    df_1 = pd.read_csv(inp_1, skiprows=4, sep=r'\s+')
+    FLUX_MAG = np.sqrt(df_1["FLUX"]**2 + df_1["FLUY"]**2 + df_1["FLUZ"]**2 )
+    # FLUX_MAG = np.linalg.norm(df_1[["FLUX", "FLUY", "FLUZ"]])
+    df_1["FLUX_MAG"] = FLUX_MAG
+else:
+    inp_1 = f"./RESULTS/VMIS_{time_previous:.0f}.csv"
+    df_1 = pd.read_csv(inp_1, skiprows=4, sep=r'\s+')
+    inp_2 = f"./RESULTS/INVA_2_{time_previous:.0f}.csv"
+    df_2 = pd.read_csv(inp_2, skiprows=4, sep=r'\s+')
 # print(df_1)
 
 volume_tol_start = volume_tol
+e_tol_start = e_tol
 if time_previous == 1:
     df = df_1
-    df["INVA_2"] = df_2["INVA_2"]
+    if minimize == "FLUX_MAG":
+        pass
+    else:
+        df["INVA_2"] = df_2["INVA_2"]
     e_prev = 0
     residual = 1
     error_vol = 1
@@ -233,6 +246,7 @@ if time_previous == 1:
                                   'lambda':                 [Lambda],
                                   'p':                      [p],
                                   'e':                      [e_prev],
+                                  'e_tol':                  [e_tol],
                                   'residual':               [residual],
                                   'vol':                    [aim_volume_fraction],
                                   'volume_tol':             [volume_tol],
@@ -245,9 +259,11 @@ if time_previous == 1:
 else:
     inp = f"./RESULTS/density_{time_previous:.0f}.csv"
     df = pd.read_csv(inp)
-    # df["VMIS"] = 0
-    df["VMIS"] = df_1["VMIS"]
-    df["INVA_2"] = df_2["INVA_2"]
+    if minimize == "FLUX_MAG":
+        df["FLUX_MAG"] = FLUX_MAG
+    else:
+        df["VMIS"] = df_1["VMIS"]
+        df["INVA_2"] = df_2["INVA_2"]
     Convergence_1 = pd.read_csv("./RESULTS/Convergence.csv",  sep='\t')
     Lambda = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'lambda'].values[0]
     p = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'p'].values[0]
@@ -282,8 +298,7 @@ def update_density():
     
     x_e_new = df["density"] * B_e**theta
     # x_e_new = np.clip(x_e_new, density_min, density_max)
-    x_e_new = np.clip(x_e_new, np.maximum(
-        df["density"] - move, density_min), np.minimum(df["density"] + move, density_max))
+    x_e_new = np.clip(x_e_new, np.maximum(df["density"] - move, density_min), np.minimum(df["density"] + move, density_max))
     # x_e_new = np.clip(x_e_new, np.maximum(x_e_new - move, density_min), np.minimum(x_e_new + move, density_max))
     df["density"] = x_e_new
 
@@ -329,6 +344,9 @@ elif minimize == "INVA_2":
     e = df["INVA_2"]
 elif minimize == "ENERGY":
     e = df["VMIS"] * df["INVA_2"]
+elif minimize == "FLUX_MAG":
+    df["GRAD_T_MAG"] = FLUX_MAG/df["density"]
+    e = df["GRAD_T_MAG"]*df["FLUX_MAG"]
 
 update_density()
 volume_constraint()
@@ -364,25 +382,29 @@ e_final = np.linalg.norm(e)
 if time_previous != 1:
     residual = abs((e_final - e_prev)/e_prev)
     residual_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'residual'].values[0]
-    p_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'p'].values[0]
+    p_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous-1, 'p'].values[0]
     # Lambda_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'lambda'].values[0]
     
-    if p >= p_max:
-        radius = radius_end
+    if p >= p_max:  radius = radius_end
         
+    if p > 1:       e_tol = e_tol_end
+    else:           e_tol = e_tol_start
+    
     # if Lambda != Lambda_prev and p >= 3:
     #     volume_tol_min = volume_tol_min*2
     #     volume_tol = max(volume_tol_min, volume_tol)
     
-    if residual < e_tol and residual_prev < e_tol :
+    if residual < e_tol and residual_prev < e_tol and p == p_prev :
         if error_vol < volume_tol_min:
             p = min(p + p_step, p_max)
+            # p = min(p * p_step, p_max)
             if p >= p_max and p_prev >= p_max:
                 print("Solution CONVERGED")
                 with open("./RESULTS/stop.txt", "w") as file: pass
 
 df["INST"] = step_time_end
-df["ENERGY"] = df["VMIS"] * df["INVA_2"]
+if not minimize == "FLUX_MAG":
+    df["ENERGY"] = df["VMIS"] * df["INVA_2"]
 
 print("Penalization factor =", p)
 print("e_prev =", e_prev)
@@ -394,6 +416,7 @@ Convergence_2 = pd.DataFrame({'Time':                   [step_time_end],
                               'lambda':                 [Lambda],
                               'p':                      [p],
                               'e':                      [e_final],
+                              'e_tol':                  [e_tol],
                               'residual':               [residual],
                               'vol':                    [current_volume_fraction],
                               'volume_tol':             [volume_tol],
@@ -409,6 +432,7 @@ merged_Convergence = pd.concat([Convergence_1, Convergence_2], ignore_index=True
 merged_Convergence['lambda'] = merged_Convergence['lambda'].apply(lambda x: f"{x:.6E}")
 merged_Convergence['p'] = merged_Convergence['p'].apply(lambda x: f"{x:.3g}")
 merged_Convergence['e'] = merged_Convergence['e'].apply(lambda x: f"{x:.6E}")
+merged_Convergence['e_tol'] = merged_Convergence['e_tol'].apply(lambda x: f"{x:.6E}")
 merged_Convergence['residual'] = merged_Convergence['residual'].apply(lambda x: f"{x:.6E}")
 merged_Convergence['vol'] = merged_Convergence['vol'].apply(lambda x: f"{x:.3f}")
 merged_Convergence['volume_tol'] = merged_Convergence['volume_tol'].apply(lambda x: f"{x:.3f}")

@@ -1,23 +1,23 @@
 #!/bin/bash
 # run with                      bash run.sh       | tee log.run
 ######################## TIC ###########################
-start_time=$(date +%s%N)
+set +e; start_time=$(date +%s%N)
 ######################## TIC ###########################
 
 time_start=1 ; echo "time_start:" $time_start       # !=1 when restarting 
 time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
 nth_result=1                                        # print results only n-th iteration
 
+rm -rf -v temporary
 if [ "$time_start" -eq 1 ]; then
     bash clean.sh
-    cp ../../MESH/beam_hole.med ./MESH.med
+    cp ../../MESH/heatsink.med ./MESH.med
 fi
 
+set -e
 cp ./ORG_3D/* .
-# cp ./ORG_DKT/* .      # uncomment to use .comm for DKT shell elements, and change mesh to beam_shell.med
-
-rm -rf -v temporary
 echo "$PWD"/temporary   ;   sed -i "s|P rep_trav .*|P rep_trav $PWD/temporary|" *.export
+
 cp Topology_Optimization.py Topology_Optimization_run.py
 cp Postprocess.py Postprocess_run.py
 
@@ -70,8 +70,8 @@ if [ -e ./RESULTS/stop.txt ]; then
 fi
 
 done
+set +e
 python3 Postprocess_run.py
-
 
 rm ./RESULTS/combined.mess *.comm *.export
 cat ./RESULTS/*.mess >> ./RESULTS/combined.mess

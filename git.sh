@@ -5,10 +5,12 @@ git add         git.sh LICENSE README.md
 
 git add         ./MESH/beam_hole.med
 git add         ./MESH/beam_shell.med
+git add         ./MESH/heatsink.med
 
 git add         ./STUDY/beam
+git add         ./STUDY/heatsink
 
-git commit -m "this is commit"
+git commit -m "extented with thermal analyses"
 
 git push
 
