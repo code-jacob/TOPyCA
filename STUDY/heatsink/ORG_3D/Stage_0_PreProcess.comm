@@ -36,7 +36,7 @@ MESH_T = DEFI_GROUP(reuse=MESH_T,
 
 MODEL_T = AFFE_MODELE(AFFE=_F(GROUP_MA=('Group_Of_All_Faces', 'Group_Of_All_Volumes'),
 
-                              MODELISATION='3D_DIAG',
+                              MODELISATION='3D',
 
                               PHENOMENE='THERMIQUE'),
 
@@ -59,23 +59,33 @@ steel = DEFI_MATERIAU(THER_FO=_F(LAMBDA=Lambda,
 
 
 # temperature = AFFE_CHAR_THER(MODELE=MODEL_T,
-#                              TEMP_IMPO=(_F(GROUP_MA=('x_min','y_max'),
-#                                            TEMP=20.0),
-#                                         _F(GROUP_MA=('x_max', 'y_min',),
-#                                            TEMP=100.0)))
+#                              TEMP_IMPO=(_F(GROUP_MA=('x_max'),
+#                                            TEMP=100.0),
+#                                         _F(GROUP_MA=('x_min',),
+#                                            TEMP=20.0)))
 
 
 
 
 source = AFFE_CHAR_THER(MODELE=MODEL_T,
 
-                        SOURCE=_F(GROUP_MA=('Group_Of_All_Volumes', ),
+                        SOURCE=_F(GROUP_MA=('REGION', ),
+                                  SOUR=100),          # 100e6 W/m**3
 
-                                  SOUR=1),
+                        # FLUX_REP=_F(FLUN=1.0,         # 1000 W/m**2
+                                #     GROUP_MA=('y_max', )),
 
-                        TEMP_IMPO=_F(GROUP_MA=('F_1', ),
+                        # ECHANGE=_F(COEF_H=0.010,          # 10 W/m**2
+                        # GROUP_MA=( 'x_min' ,'x_max', 'y_min', 'y_max', 'z_min', 'z_max' ),
+                        # TEMP_EXT=20.0),
 
-                                     TEMP=20.0))
+                        TEMP_IMPO=(_F(GROUP_MA=('F_2', ),
+
+                                     TEMP=0 ),
+                        #           _F(GROUP_MA=('x_max', ),
+                        #              TEMP=100.0),
+                        )
+                        )
 
 
 

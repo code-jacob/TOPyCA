@@ -85,8 +85,6 @@ TIMESTP0 = DEFI_LIST_REEL(DEBUT=0.0,
 
 THER_L = THER_LINEAIRE(CHAM_MATER=MATERIAL_T,
 
-                       ETAT_INIT=_F(VALE=Reference_Temp),
-
                        EXCIT=_F(CHARGE=source),
 
                        INCREMENT=_F(LIST_INST=TIMESTP0),

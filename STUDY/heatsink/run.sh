@@ -31,7 +31,7 @@ do
     cp Stage_1_Iteration.export Stage_1_Iteration_${i}.export
     sed -i "s/-time-/${i}/g" Stage_1_Iteration_${i}.export
     sed -i "s/^time_previous = .*/time_previous = ${j}/" Stage_1_Iteration_${i}.comm
-    sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Iteration_1.comm
+    sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Iteration_${i}.comm
 
 if [ "$i" -eq 1 ]; then
     singularity run ~/salome_meca-lgpl-2022.1.0-1-20221225-scibian-9.sif shell << END
@@ -58,7 +58,8 @@ if (( j % nth_result != 0 )); then
     rm ./RESULTS/INVA_2_${j}.csv
     rm ./RESULTS/density_${j}.csv
 else
-    python3 Postprocess_run.py
+    # python3 Postprocess_run.py
+    echo ""
 fi
 
 fi
@@ -76,6 +77,7 @@ python3 Postprocess_run.py
 rm ./RESULTS/combined.mess *.comm *.export
 cat ./RESULTS/*.mess >> ./RESULTS/combined.mess
 bash backup.sh
+du -sh RESULTS
 
 ######################## TOC ###########################
 end_time=$(date +%s%N) ; elapsed_ns=$((end_time - start_time)) ; elapsed_ms=$((elapsed_ns / 1000000)) ; total_seconds=$((elapsed_ms / 1000))

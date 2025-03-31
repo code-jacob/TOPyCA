@@ -1,23 +1,24 @@
 #!/bin/bash
 # run with                      bash run.sh       | tee log.run
 ######################## TIC ###########################
-start_time=$(date +%s%N)
+set +e; start_time=$(date +%s%N)
 ######################## TIC ###########################
 
 time_start=1 ; echo "time_start:" $time_start       # !=1 when restarting 
 time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
 nth_result=1                                        # print results only n-th iteration
 
+rm -rf -v temporary
 if [ "$time_start" -eq 1 ]; then
     bash clean.sh
-    cp ../../MESH/beam_hole.med ./MESH.med
+    # cp ../../MESH/heatsink.med ./MESH.med
+    cp ../../MESH/beam.med ./MESH.med
 fi
 
+set -e
 cp ./ORG_3D/* .
-# cp ./ORG_DKT/* .      # uncomment to use .comm for DKT shell elements, and change mesh to beam_shell.med
-
-rm -rf -v temporary
 echo "$PWD"/temporary   ;   sed -i "s|P rep_trav .*|P rep_trav $PWD/temporary|" *.export
+
 cp Topology_Optimization.py Topology_Optimization_run.py
 cp Postprocess.py Postprocess_run.py
 
@@ -31,7 +32,7 @@ do
     cp Stage_1_Iteration.export Stage_1_Iteration_${i}.export
     sed -i "s/-time-/${i}/g" Stage_1_Iteration_${i}.export
     sed -i "s/^time_previous = .*/time_previous = ${j}/" Stage_1_Iteration_${i}.comm
-    sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Iteration_1.comm
+    sed -i "s/^   aim_volume_fraction = .*/   aim_volume_fraction = $aim_volume_fraction/" Stage_1_Iteration_${i}.comm
 
 if [ "$i" -eq 1 ]; then
     singularity run ~/salome_meca-lgpl-2022.1.0-1-20221225-scibian-9.sif shell << END
@@ -59,6 +60,7 @@ if (( j % nth_result != 0 )); then
     rm ./RESULTS/density_${j}.csv
 else
     python3 Postprocess_run.py
+    echo ""
 fi
 
 fi
@@ -70,12 +72,13 @@ if [ -e ./RESULTS/stop.txt ]; then
 fi
 
 done
+set +e
 python3 Postprocess_run.py
-
 
 rm ./RESULTS/combined.mess *.comm *.export
 cat ./RESULTS/*.mess >> ./RESULTS/combined.mess
 bash backup.sh
+du -sh RESULTS
 
 ######################## TOC ###########################
 end_time=$(date +%s%N) ; elapsed_ns=$((end_time - start_time)) ; elapsed_ms=$((elapsed_ns / 1000000)) ; total_seconds=$((elapsed_ms / 1000))

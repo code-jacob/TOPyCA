@@ -12,30 +12,30 @@ import time
 start_time = time.time()
 
 # minimize = "VMIS"             # von Mises stress
-# minimize = "INVA_2"           # Equivalent Strain
-# minimize = "ENERGY"           # "pseudo/shear deformation energy" calculated simply as equivalent stress*strain
-minimize = "FLUX_MAG"           # Laplacian of temperature * conductivity 
+# minimize = "INVA_2"           # Equivalent strain
+# minimize = "ENERGY"           # "pseudo/shear deformation energy density" calculated simply as equivalent stress*strain or density*strain**2
+minimize = "HEAT_POWER"         # conductivity times Laplacian of temperature (heat power density)
 
 p = 1
 p_max = 3
 p_step = 0.5
 move = 0.2
-e_tol = 1e-4
+e_tol = 1e-5
 e_tol_end = 1e-4
 density_min = 1e-3
 density_max = 1
 theta = 1/2
 
-aim_volume_fraction = 0.3
+aim_volume_fraction = 0.25
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.06
+volume_tol_min = 0.1            # 0.1 = 10% tolerance for aim_volume_fraction
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
 max_iter = 200                  # Maximum iterations for Lambda adjustment
 
-radius = 1.1                    # higher than element size to eliminate checkerboard pattern
-radius_end = radius                  # used when p = 3
+radius = 0.7                    # higher than element size to eliminate checkerboard pattern
+radius_end = radius/2                  # used when p = 3
 
 relaxation = "no"
 # relaxation = "yes"
@@ -216,7 +216,7 @@ print("Iteration = ", step_time_end)
 print("Aim volume fraction = ", aim_volume_fraction)
 print("Minimize :", minimize)
 
-if minimize == "FLUX_MAG":
+if minimize == "HEAT_POWER":
     inp_1 = f"./RESULTS/FLUX_{time_previous:.0f}.csv"
     df_1 = pd.read_csv(inp_1, skiprows=4, sep=r'\s+')
     FLUX_MAG = np.sqrt(df_1["FLUX"]**2 + df_1["FLUY"]**2 + df_1["FLUZ"]**2 )
@@ -233,7 +233,7 @@ volume_tol_start = volume_tol
 e_tol_start = e_tol
 if time_previous == 1:
     df = df_1
-    if minimize == "FLUX_MAG":
+    if minimize == "HEAT_POWER":
         pass
     else:
         df["INVA_2"] = df_2["INVA_2"]
@@ -259,7 +259,7 @@ if time_previous == 1:
 else:
     inp = f"./RESULTS/density_{time_previous:.0f}.csv"
     df = pd.read_csv(inp)
-    if minimize == "FLUX_MAG":
+    if minimize == "HEAT_POWER":
         df["FLUX_MAG"] = FLUX_MAG
     else:
         df["VMIS"] = df_1["VMIS"]
@@ -343,10 +343,12 @@ if minimize == "VMIS":
 elif minimize == "INVA_2":
     e = df["INVA_2"]
 elif minimize == "ENERGY":
-    e = df["VMIS"] * df["INVA_2"]
-elif minimize == "FLUX_MAG":
+    # e = df["VMIS"] * df["INVA_2"]
+    e = df["density"] * df["INVA_2"]**2
+elif minimize == "HEAT_POWER":
     df["GRAD_T_MAG"] = FLUX_MAG/df["density"]
-    e = df["GRAD_T_MAG"]*df["FLUX_MAG"]
+    # e = df["GRAD_T_MAG"]*df["FLUX_MAG"]
+    e = df["density"]*df["GRAD_T_MAG"]**2
 
 update_density()
 volume_constraint()
@@ -393,7 +395,7 @@ if time_previous != 1:
     # if Lambda != Lambda_prev and p >= 3:
     #     volume_tol_min = volume_tol_min*2
     #     volume_tol = max(volume_tol_min, volume_tol)
-    
+
     if residual < e_tol and residual_prev < e_tol and p == p_prev :
         if error_vol < volume_tol_min:
             p = min(p + p_step, p_max)
@@ -403,8 +405,8 @@ if time_previous != 1:
                 with open("./RESULTS/stop.txt", "w") as file: pass
 
 df["INST"] = step_time_end
-if not minimize == "FLUX_MAG":
-    df["ENERGY"] = df["VMIS"] * df["INVA_2"]
+if minimize == "HEAT_POWER": df["HEAT_POWER"] = e
+else: df["ENERGY"] = e
 
 print("Penalization factor =", p)
 print("e_prev =", e_prev)

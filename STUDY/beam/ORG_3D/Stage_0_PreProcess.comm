@@ -22,9 +22,9 @@ MESH = DEFI_GROUP(reuse=MESH,
 
                                     NOM='ALL_VOLUMES'),
 
-                                 _F(DIFFE=('ALL_VOLUMES', 'REGION'),
+                                #  _F(DIFFE=('ALL_VOLUMES', 'REGION'),
 
-                                    NOM='UNAFFECTED')
+                                #     NOM='UNAFFECTED')
                                 ),
 
                   MAILLAGE=MESH)

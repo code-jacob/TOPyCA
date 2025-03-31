@@ -6,6 +6,8 @@ Name: Topology_Optimization_Postprocess.py
 """
 import pandas as pd
 import glob
+import time
+start_time = time.time()
 
 aim_volume_fraction = 0.5
 
@@ -29,3 +31,11 @@ output_file_path = "./RESULTS/all_density.csv"
 merged_df.to_csv(output_file_path, index=False)
 print("density .csv files merged")
 
+
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+hours = int(elapsed_time // 3600)
+minutes = int((elapsed_time % 3600) // 60)
+seconds = elapsed_time % 60
+print(f"Elapsed time: {hours} hr {minutes} min {seconds:.2f} sec")
