@@ -6,12 +6,11 @@ set +e; start_time=$(date +%s%N)
 
 time_start=1 ; echo "time_start:" $time_start       # !=1 when restarting 
 time_end=200 ; echo "time_end:" $time_end           # maximum number of iterations
-nth_result=1                                        # print results only n-th iteration
+nth_result=2                                        # print results only n-th iteration
 
 rm -rf -v temporary
 if [ "$time_start" -eq 1 ]; then
-    bash clean.sh ; cp ../../MESH/beam.med ./MESH.med
-    # bash clean.sh ; cp ../../MESH/heatsink.med ./MESH.med
+    bash clean.sh ; cp ../../MESH/beam_holes.med ./MESH.med
 fi
 
 set -e
@@ -59,7 +58,7 @@ if (( j % nth_result != 0 )); then
     rm ./RESULTS/INVA_2_${j}.csv
     rm ./RESULTS/density_${j}.csv
 else
-    python3 Postprocess_run.py
+    # python3 Postprocess_run.py
     echo ""
 fi
 set -e

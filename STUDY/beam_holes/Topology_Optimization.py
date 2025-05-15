@@ -21,22 +21,22 @@ p = 1
 p_max = 3
 p_step = 0.5
 move = 0.2
-e_tol = 1e-4
+e_tol = 2e-4
 e_tol_end = 1e-3
 density_min = 1e-3
 density_max = 1
 theta = 1/2
 
-aim_volume_fraction = 0.5
+aim_volume_fraction = 0.4
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.01            # 0.1 = 10% tolerance for aim_volume_fraction
+volume_tol_min = 0.05            # 0.1 = 10% tolerance for aim_volume_fraction
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
 max_iter = 200                  # Maximum iterations for Lambda adjustment
 
-radius = 2.4                    # higher than element size to eliminate checkerboard pattern
-radius_end = radius                  # used when p = 3
+radius = 2                    # higher than element size to eliminate checkerboard pattern
+radius_end = 2                  # used when p = 3
 
 # relaxation = "no"
 relaxation = "yes"
@@ -473,4 +473,4 @@ elapsed_time = end_time - start_time
 hours = int(elapsed_time // 3600)
 minutes = int((elapsed_time % 3600) // 60)
 seconds = elapsed_time % 60
-print(f"Elapsed time: {hours} hr {minutes} min {seconds:.2f} sec")
+print(f"Update Density - Elapsed time: {hours} hr {minutes} min {seconds:.2f} sec")

@@ -63,7 +63,7 @@ $ bash run.sh       | tee log.run
 ## Post-Process
 
 - In Paraview go to Python Shell and click on Run Script
-- open trace_2.py (you have to change paths of all_density.csv and MESH_GROUPS.med according to your system)
+- open state_1.pvsm
 
 or do it manually
 
@@ -75,10 +75,10 @@ or do it manually
 - change X Column to COOR_X, Y Column to COOR_Y, Z Column to COOR_Z
 
 - open file MESH_GROUPS.med
-- apply filter ExtractGroup, select ALL_VOLUMES
+- apply filter ExtractGroup, select UNAFFECTED
 - apply filter ExtractGroup, select REGION
-- apply filter ResampleWithDataset - Source Data Arrays > TableToPoints, Destination Mesh > ExtractGroup (REGION)
-- tick Snap To Cell With Closest Point, untick Compute Tolerance
+- apply filter PointDatasetInterpolator - Input > TableToPoints, Source > ExtractGroup (REGION)
+- ( or apply filter ResampleWithDataset - Source Data Arrays > TableToPoints, Destination Mesh > ExtractGroup (REGION), then tick Snap To Cell With Closest Point, untick Compute Tolerance ) # much slower
 
 How to extract 3D shape:
 - apply filter Clip

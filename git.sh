@@ -3,14 +3,16 @@ git status
 git add         IMAGES
 git add         git.sh LICENSE README.md
 
-git add         ./MESH/beam_hole.med
+git add         ./MESH/beam.med
+git add         ./MESH/beam_holes.med
 git add         ./MESH/beam_shell.med
 git add         ./MESH/heatsink.med
 
 git add         ./STUDY/beam
+git add         ./STUDY/beam_holes
 git add         ./STUDY/heatsink
 
-git commit -m "extended with thermal analyses"
+git commit -m "bug fix for relaxation, added convergence table"
 
 git push
 
