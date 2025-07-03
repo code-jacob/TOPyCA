@@ -62,7 +62,7 @@ $ bash run.sh       | tee log.run
 
 ## Post-Process
 
-- In Paraview go to Python Shell and click on Run Script
+- In Paraview go to File -> Load State
 - open state_1.pvsm
 
 or do it manually
@@ -90,7 +90,7 @@ Eventually you can smooth the final shape:
 - apply filter Smooth -> Number of Iterations -> 500
 
 
-**NOTE**: For large studies instead of selecting all_density.csv select density_{iteration}.csv. 
+**NOTE**: For large studies, instead of selecting all_density.csv select density_{iteration}.csv. 
 For updating: right click - Change File - select different density_{iteration}.csv.
 
 
