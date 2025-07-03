@@ -29,7 +29,7 @@ theta = 1/2
 
 aim_volume_fraction = 0.4
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.05            # 0.1 = 10% tolerance for aim_volume_fraction
+volume_tol_min = 0.02            # 0.1 = 10% tolerance for aim_volume_fraction
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
@@ -40,7 +40,7 @@ radius_end = 2                  # used when p = 3
 
 # relaxation = "no"
 relaxation = "yes"
-p_relax = 2.5                     # start relaxing when p = 3
+p_relax = 2                     # p_relax = 2, start relaxing when p = 2
 if relaxation == "yes":
     relaxation_factor_end = 0.7  # 0.7 -> allow 30% density change in next iteration for each point
 

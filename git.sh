@@ -7,12 +7,14 @@ git add         ./MESH/beam.med
 git add         ./MESH/beam_holes.med
 git add         ./MESH/beam_shell.med
 git add         ./MESH/heatsink.med
+git add         ./MESH/beam_3D.med
 
 git add         ./STUDY/beam
 git add         ./STUDY/beam_holes
 git add         ./STUDY/heatsink
+git add         ./STUDY/beam_3D
 
-git commit -m "bug fix for relaxation, added convergence table"
+git commit -m "constraints optimization, time measurement"
 
 git push
 

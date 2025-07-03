@@ -1,0 +1,203 @@
+DEBUT(LANG='EN')
+
+
+
+A_1 = 1
+
+
+
+E_const = 200e3
+
+
+
+MESH = LIRE_MAILLAGE(FORMAT='MED',
+
+                     UNITE=2)
+
+
+
+MESH = DEFI_GROUP(reuse=MESH,
+
+                  CREA_GROUP_MA=(_F(GROUP_MA=('Group_Of_All_Volumes', ),
+
+                                    NOM='ALL_VOLUMES'),
+
+                                #  _F(DIFFE=('ALL_VOLUMES', 'REGION'),
+
+                                #     NOM='UNAFFECTED')
+                                ),
+
+                  MAILLAGE=MESH)
+
+
+
+MESH = DEFI_GROUP(reuse=MESH,
+
+                  CREA_GROUP_NO=_F(GROUP_MA=('REGION')),
+
+                  MAILLAGE=MESH)
+
+
+
+DUMMY = AFFE_MODELE(AFFE=_F(GROUP_MA=('Group_Of_All_Faces', ),
+
+                            MODELISATION='3D',
+
+                            PHENOMENE='MECANIQUE'),
+
+                    MAILLAGE=MESH)
+
+
+
+MODEL = AFFE_MODELE(AFFE=_F(GROUP_MA=('Group_Of_All_Faces', 'Group_Of_All_Volumes'),
+
+                            MODELISATION='3D',
+
+                            PHENOMENE='MECANIQUE'),
+
+                    MAILLAGE=MESH)
+
+
+
+mu = DEFI_CONSTANTE(VALE=0.3)
+
+
+
+rho = DEFI_CONSTANTE(VALE=7.8e-09)
+
+
+
+E = DEFI_CONSTANTE(VALE=E_const)
+
+
+
+steel = DEFI_MATERIAU(ELAS_FO=_F(E=E,
+
+                                 NU=mu,
+
+                                 RHO=rho))
+
+
+
+DumyDEPL = CREA_CHAMP(AFFE=_F(NOM_CMP=('DX', ),
+
+                              TOUT='OUI',
+
+                              VALE=(0.0, )),
+
+                      MODELE=DUMMY,
+
+                      OPERATION='AFFE',
+
+                      TYPE_CHAM='NOEU_DEPL_R')
+
+
+
+I_1 = POST_ELEM(CHAM_GD=DumyDEPL,
+
+                INTEGRALE=_F(GROUP_MA=('F_1', ),
+
+                             NOM_CHAM='DEPL',
+
+                             NOM_CMP=('DX', ),
+
+                             TYPE_MAILLE='2D'),
+
+                MODELE=DUMMY)
+
+
+
+A_1 = EXTR_TABLE(NOM_PARA='VOL',
+
+                 TABLE=I_1,
+
+                 TYPE_RESU='REEL')
+
+
+# ============================== beam ==============================
+
+force_1 = -10000 / A_1
+
+
+
+Force = AFFE_CHAR_MECA(FORCE_FACE=_F(FY=force_1,
+
+                                     GROUP_MA=('F_1', )),
+
+                       MODELE=MODEL)
+
+
+
+fix = AFFE_CHAR_MECA(DDL_IMPO=_F(DX=0.0,
+
+                                 DY=0.0,
+
+                                 DZ=0.0,
+
+                                 GROUP_MA=('fix', )),
+
+                     MODELE=MODEL)
+
+
+# # ============================== clip ==============================
+# force_1 = -10000 / A_1
+
+
+
+# Force = AFFE_CHAR_MECA(FORCE_FACE=_F(FY=force_1,
+
+#                                      GROUP_MA=('F_1', )),
+
+#                        MODELE=MODEL)
+
+# fix = AFFE_CHAR_MECA(DDL_IMPO=(  _F(DY=0.0,
+#                                   GROUP_MA=('fix', )),
+
+#                                  _F(DX=0.0,
+#                                   GROUP_NO=('dx', )),
+
+#                                  _F(DX=0.0, 
+#                                     DZ=0.0,
+#                                   GROUP_NO=('dxdz', ))),
+#                      MODELE=MODEL)
+
+# ============================== disk ==============================
+
+# P = 1.8
+# force_1 = -( P * (pi*3800**2)/4) / (A_1 * 2)
+
+# hinge = AFFE_CHAR_MECA(DDL_IMPO=_F(
+                                 
+#                                  # DX=0.0,
+
+#                                  DY=0.0,
+
+#                                  DZ=0.0,
+
+#                                  GROUP_MA=('fix', )),
+
+#                      MODELE=MODEL)
+
+# symmetry = AFFE_CHAR_MECA(DDL_IMPO=(_F(DX=0.0,
+#                                        GROUP_MA=('sym_x', )),
+
+#                               ),
+#                      MODELE=MODEL)
+
+# Force = AFFE_CHAR_MECA(FORCE_FACE=_F(FY=force_1,
+
+#                                      GROUP_MA=('F_1', )),
+
+#                        MODELE=MODEL)
+
+
+
+
+IMPR_RESU(RESU=_F(MAILLAGE=MESH),
+
+          UNITE=3)
+
+
+
+FIN()
+

@@ -22,25 +22,25 @@ p_max = 3
 p_step = 0.5
 move = 0.2
 e_tol = 1e-4
-e_tol_end = 1e-3
+e_tol_end = 2e-3
 density_min = 1e-3
 density_max = 1
 theta = 1/2
 
-aim_volume_fraction = 0.5
+aim_volume_fraction = 0.4
 volume_tol = 0.3                # Tolerance for volume constraint (increase if oscilation)
-volume_tol_min = 0.01            # 0.1 = 10% tolerance for aim_volume_fraction
+volume_tol_min = 0.1            # 0.1 = 10% tolerance for aim_volume_fraction
 e_tol_vol = 0.1
 Lambda = 1
 lambda_multiplier = 1.1
 max_iter = 200                  # Maximum iterations for Lambda adjustment
 
-radius = 2.4                    # higher than element size to eliminate checkerboard pattern
+radius = 2.2                    # higher than element size to eliminate checkerboard pattern
 radius_end = radius                  # used when p = 3
 
 # relaxation = "no"
 relaxation = "yes"
-p_relax = 2.5                     # start relaxing when p = 3
+p_relax = 2                     # p_relax = 2, start relaxing when p = 2
 if relaxation == "yes":
     relaxation_factor_end = 0.7  # 0.7 -> allow 30% density change in next iteration for each point
 
@@ -49,29 +49,27 @@ symmetry = "no"
 # symmetry = "yes"
 if symmetry == "yes":
     treshold_symmetry = 0.5
-    radius_symmetry = 0.7
+    radius_symmetry = radius * 1.1
     point_symmetry = (0, 25, 0)
     direction_symmetry = (0, 1, 0)
 
 stamping = "no"
 # stamping = "yes"
 if stamping == "yes":
-    radius_stamping = 25
+    radius_stamping = radius * 0.5
     # direction_stamping = (0,0,1)     # to change the direction you have to edit the function 
                                        # change COOR_* accordingly, only cartesian for now
-
 casting = "no"
 # casting = "yes"
 if casting == "yes":
-    radius_casting = 25
+    radius_casting = 2
     treshold_casting = 0.5
     # direction_casting = (0,0,1)      # to change the direction you have to edit the function 
                                        # change COOR_* accordingly, only cartesian for now
-
 two_way_casting = "no"
 # two_way_casting = "yes"
 if two_way_casting == "yes":
-    radius_casting = 0.1
+    radius_casting = radius * 1.1
     treshold_casting = 0.5
     # direction_casting = (0,0,1)      # to change the direction you have to edit the function 
                                        # change COOR_* accordingly, only cartesian for now
@@ -250,7 +248,7 @@ if time_previous == 1:
                                   'e':                      [e_prev],
                                   'e_tol':                  [e_tol],
                                   'residual':               [residual],
-                                  'vol':                    [aim_volume_fraction],
+                                  'volume_fraction':        [aim_volume_fraction],
                                   'volume_tol':             [volume_tol],
                                   'error_vol':              [error_vol],
                                   'radius':                 [radius],
@@ -307,29 +305,29 @@ def update_density():
 
 def volume_constraint():
     global Lambda
-    global current_volume_fraction, error_vol
+    global volume_fraction, error_vol
 
     iter_count = 0
-    current_volume_fraction = np.mean(df["density"])
-    print("Current Volume Fraction:", current_volume_fraction)
-    error_vol = abs(current_volume_fraction - aim_volume_fraction)/aim_volume_fraction
+    volume_fraction = np.mean(df["density"])
+    print("Current Volume Fraction:", volume_fraction)
+    error_vol = abs(volume_fraction - aim_volume_fraction)/aim_volume_fraction
     
     while error_vol > volume_tol and iter_count < max_iter:
-        if current_volume_fraction > aim_volume_fraction:
+        if volume_fraction > aim_volume_fraction:
             Lambda *= lambda_multiplier  # Increase Lambda to reduce density
         else:
             Lambda /= lambda_multiplier  # Decrease Lambda to increase density
         update_density()
         
-        current_volume_fraction = np.mean(df["density"])
+        volume_fraction = np.mean(df["density"])
         iter_count += 1
-        print(f"Iteration {iter_count}: Lambda = {Lambda}, Volume Fraction = {current_volume_fraction}")
-        error_vol = abs(current_volume_fraction - aim_volume_fraction)/aim_volume_fraction
+        print(f"Iteration {iter_count}: Lambda = {Lambda}, Volume Fraction = {volume_fraction}")
+        error_vol = abs(volume_fraction - aim_volume_fraction)/aim_volume_fraction
     if iter_count == max_iter:
         print("\033[33m"+"Warning: Lambda adjustment did not converge.")
         print("\033[0m")
     print(
-        f"Adjusted Lambda: {Lambda}, Final Volume Fraction: {current_volume_fraction}")
+        f"Adjusted Lambda: {Lambda}, Final Volume Fraction: {volume_fraction}")
 
 nodes = len(df["COOR_X"])
 print("nodes =", nodes)
@@ -360,6 +358,8 @@ update_density()
 
 # ========================= manufacturing constraints ==========================
 
+start_time_1 = time.time()
+
 if symmetry == "yes":
     symmetry_constraint()
 
@@ -372,9 +372,25 @@ if casting == "yes":
 if two_way_casting == "yes":
     two_way_casting_constraint()
 
+end_time_1 = time.time()
+elapsed_time_1 = end_time_1 - start_time_1
+hours_1 = int(elapsed_time_1 // 3600)
+minutes_1 = int((elapsed_time_1 % 3600) // 60)
+seconds_1 = elapsed_time_1 % 60
+print(f"Constraint - Elapsed time: {hours_1} hr {minutes_1} min {seconds_1:.2f} sec")
+
 # =============================================================================
 
+start_time_2 = time.time()
+
 filtering()
+
+end_time_2 = time.time()
+elapsed_time_2 = end_time_2 - start_time_2
+hours_2 = int(elapsed_time_2 // 3600)
+minutes_2 = int((elapsed_time_2 % 3600) // 60)
+seconds_2 = elapsed_time_2 % 60
+print(f"Filtering - Elapsed time: {hours_2} hr {minutes_2} min {seconds_2:.2f} sec")
 
 if relaxation == "yes" and round(p,3) >= p_relax:
     relaxation_factor = relaxation_factor_end
@@ -382,9 +398,11 @@ if relaxation == "yes" and round(p,3) >= p_relax:
     density_diff =  df["density"] - density_prev
     df["density"] = density_prev + density_diff*(1-relaxation_factor)
     print("Relaxation factor =", relaxation_factor)
-    error_vol = abs(np.mean(df["density"]) - aim_volume_fraction)/aim_volume_fraction
 
+volume_fraction = np.mean(df["density"])
+error_vol = abs(volume_fraction - aim_volume_fraction)/aim_volume_fraction
 e_final = np.linalg.norm(e)
+
 if time_previous != 1:
     residual = abs((e_final - e_prev)/e_prev)
     residual_prev = Convergence_1.loc[Convergence_1['Time'] == time_previous, 'residual'].values[0]
@@ -404,9 +422,10 @@ if time_previous != 1:
     #     volume_tol = max(volume_tol_min, volume_tol)
 
     if residual < e_tol and residual_prev < e_tol and p == p_prev :
+        # if "yes" in (symmetry, casting, stamping, two_way_casting):
+        #     volume_tol_min = volume_tol_min*2
         if error_vol < volume_tol_min:
             p = min(p + p_step, p_max)
-            
             # p_step = max(p_step - 0.1, 1.1)
             # p = min(p * p_step, p_max)
             if p >= p_max and p_prev >= p_max:
@@ -430,7 +449,7 @@ Convergence_2 = pd.DataFrame({'Time':                   [step_time_end],
                               'e':                      [e_final],
                               'e_tol':                  [e_tol],
                               'residual':               [residual],
-                              'vol':                    [current_volume_fraction],
+                              'volume_fraction':        [volume_fraction],
                               'volume_tol':             [volume_tol],
                               'error_vol':              [error_vol],
                               'radius':                 [radius],
@@ -447,9 +466,9 @@ merged_Convergence['p_step'] = merged_Convergence['p_step'].apply(lambda x: f"{x
 merged_Convergence['e'] = merged_Convergence['e'].apply(lambda x: f"{x:.6E}")
 merged_Convergence['e_tol'] = merged_Convergence['e_tol'].apply(lambda x: f"{x:.6E}")
 merged_Convergence['residual'] = merged_Convergence['residual'].apply(lambda x: f"{x:.6E}")
-merged_Convergence['vol'] = merged_Convergence['vol'].apply(lambda x: f"{x:.3f}")
-merged_Convergence['volume_tol'] = merged_Convergence['volume_tol'].apply(lambda x: f"{x:.3f}")
-merged_Convergence['error_vol'] = merged_Convergence['error_vol'].apply(lambda x: f"{x:.3f}")
+merged_Convergence['volume_fraction'] = merged_Convergence['volume_fraction'].apply(lambda x: f"{x:.4f}")
+merged_Convergence['volume_tol'] = merged_Convergence['volume_tol'].apply(lambda x: f"{x:.4f}")
+merged_Convergence['error_vol'] = merged_Convergence['error_vol'].apply(lambda x: f"{x:.4f}")
 merged_Convergence['radius'] = merged_Convergence['radius'].apply(lambda x: f"{x:g}")
 merged_Convergence['move'] = merged_Convergence['move'].apply(lambda x: f"{x:g}")
 merged_Convergence['relaxation_factor'] = merged_Convergence['relaxation_factor'].apply(lambda x: f"{x:g}")
@@ -473,4 +492,6 @@ elapsed_time = end_time - start_time
 hours = int(elapsed_time // 3600)
 minutes = int((elapsed_time % 3600) // 60)
 seconds = elapsed_time % 60
-print(f"Elapsed time: {hours} hr {minutes} min {seconds:.2f} sec")
+print(f"Update Density - Elapsed time: {hours} hr {minutes} min {seconds:.2f} sec")
+
+

@@ -18,7 +18,7 @@ thus every stage is done separately and the loops are not done inside one code_a
 
 **NOTES**:
 
-• Element volume is considered constant so far, however to create uniform mesh is quite easy for optimization domain, since usually it has simple shape. Moreover, uniform high mesh density is needed anyway...
+• Element volume is considered constant so far. However, creating a uniform mesh is quite easy for optimization domain, since it usually has simple shape. Moreover, a uniform high mesh density is needed anyway...
 
 • Stamping and casting manufacturing constraints are implemented only for cartesian direction to increase performance since in 
 99% of cases an arbitrary direction is not needed (but with a little effort it could be implemented as well). However, user has to switch manually COOR_X, COOR_Y, COOR_Z in the function.
